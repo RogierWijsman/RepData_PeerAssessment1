@@ -1,26 +1,52 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
+# Reproducible Research: Peer Assessment 1
 
 
 ## Loading and preprocessing the data
-```{r, results='hide'}
+
+```r
 library(lubridate)
 library(timeDate)
 library(lattice)
 library(sqldf)
-library(dplyr)
+```
 
+```
+## Loading required package: gsubfn
+## Loading required package: proto
+## Loading required package: RSQLite
+## Loading required package: DBI
+```
+
+```r
+library(dplyr)
+```
+
+```
+## 
+## Attaching package: 'dplyr'
+## 
+## The following objects are masked from 'package:lubridate':
+## 
+##     intersect, setdiff, union
+## 
+## The following object is masked from 'package:stats':
+## 
+##     filter
+## 
+## The following objects are masked from 'package:base':
+## 
+##     intersect, setdiff, setequal, union
+```
+
+```r
 rawdata <- read.csv("activity.csv")
 rawdata$date <- as.Date(rawdata$date,"%Y-%m-%d")  
 ```
 
 ## What is mean total number of steps taken per day?
 
-```{r}
+
+```r
 #1. The total number of steps taken per day
 sumperday <- sqldf(" select date, sum(steps) AS totalsteps
                                 from rawdata
@@ -31,20 +57,40 @@ sumperday <- sqldf(" select date, sum(steps) AS totalsteps
 )
 ```
 
-```{r}
+```
+## Loading required package: tcltk
+```
+
+
+```r
 #2. Make a histogram of the total number of steps taken each day
 hist(sumperday$totalsteps, xlab= 'Total steps per day', main='Histogram of the total steps per day')
 ```
 
-```{r}
+![](PA1_template_files/figure-html/unnamed-chunk-3-1.png) 
+
+
+```r
 #3. Calculate and report the mean and median of the total number of steps taken per day
 mean(sumperday$totalsteps)
+```
+
+```
+## [1] 10766.19
+```
+
+```r
 median(sumperday$totalsteps)
+```
+
+```
+## [1] 10765
 ```
 
 ## What is the average daily activity pattern?
 
-```{r}
+
+```r
 #1. Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, #averaged across all days (y-axis)
 meanperinterval <- sqldf(" select interval, AVG(steps) AS averagesteps
                                 from rawdata
@@ -57,14 +103,23 @@ meanperinterval <- sqldf(" select interval, AVG(steps) AS averagesteps
 plot(meanperinterval, type="l")
 ```
 
-```{r}
+![](PA1_template_files/figure-html/unnamed-chunk-5-1.png) 
+
+
+```r
 #2. Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
 maximumsteps <- max(meanperinterval$averagesteps)
 filter(meanperinterval,meanperinterval$averagesteps ==  maximumsteps)
 ```
+
+```
+##   interval averagesteps
+## 1      835     206.1698
+```
 ## Imputing missing values
 
-```{r}
+
+```r
 # Note that there are a number of days/intervals where there are 
 # missing values (coded as NA). The presence of missing days may introduce bias into some calculations or summaries of the data.
 
@@ -73,8 +128,13 @@ numberofmissingrows <- filter(rawdata, is.na(steps))
 nrow(numberofmissingrows)
 ```
 
+```
+## [1] 2304
+```
 
-```{r}
+
+
+```r
 # 2. Devise a strategy for filling in all of the missing values in the dataset. 
 #    The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean #    for that 5-minute interval, etc.
 #
@@ -103,7 +163,8 @@ datawithnomissingvalues <- sqldf("
 )
 ```
  
-```{r}
+
+```r
 # 4.Make a histogram of the total number of steps taken each day and Calculate and report the mean and median 
 #   total number of steps taken per day.
 sumperdaynotna <- sqldf(" select date, sum(steps) AS totalsteps
@@ -114,12 +175,28 @@ sumperdaynotna <- sqldf(" select date, sum(steps) AS totalsteps
 )
 
 hist(sumperdaynotna$totalsteps, xlab= 'Total steps per day', main='Histogram of the total steps per day(not NA)')
+```
 
+![](PA1_template_files/figure-html/unnamed-chunk-9-1.png) 
+
+```r
 mean(sumperdaynotna$totalsteps)
+```
+
+```
+## [1] 84188.07
+```
+
+```r
 median(sumperdaynotna$totalsteps)
 ```
 
-```{r}
+```
+## [1] 11458
+```
+
+
+```r
 #  Do these values differ from the estimates from the first part of the assignment? 
 #  What is the impact of imputing missing data on the estimates of the total daily number of steps?
 #
@@ -138,9 +215,12 @@ median(sumperdaynotna$totalsteps)
 datawithnomissingvalues$weekend <- as.factor(ifelse(isWeekend(datawithnomissingvalues$date),'Weekday','Weekend'))
 ```
 
-```{r}
+
+```r
 # 2. Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) 
 #    and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). 
 xyplot(steps ~ interval |  weekend ,groups = weekend  ,data = datawithnomissingvalues, layout = c(1, 2), type = 'l')
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-11-1.png) 
 
